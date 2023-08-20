@@ -1,0 +1,30 @@
+Bootstrap: docker
+From: pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime  # python:3.9
+Stage: build
+
+%files
+    ./app ./app
+    /datasets/work/hb-digitaltwin/work/checkpoints/stanford/roentgen /checkpoint
+%post
+
+    # https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
+    apt-get update
+    apt-get install build-essential ffmpeg git libsm6 libxext6  -y
+
+    python -m pip install --upgrade pip
+
+    python -m pip install --no-cache-dir fastapi==0.89.1
+    python -m pip install --no-cache-dir uvicorn==0.20.0
+    python -m pip install --no-cache-dir transformers==4.30.2
+    python -m pip install --no-cache-dir diffusers==0.17.1 
+    python -m pip install --no-cache-dir accelerate==0.20.3 
+
+    pwd
+    ls .
+    ls /checkpoint
+    ls /home
+
+%runscript
+    pwd
+    ls .
+    uvicorn app.api:app --port $1
