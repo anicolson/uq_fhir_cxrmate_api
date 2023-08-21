@@ -1,65 +1,31 @@
-# RoentGen FastAPI server Apptainer image
-
-The server is in `api.py`
-
-## Start the server:
-
-Note: a GPU is needed. `bracewell-i1.hpc.csiro.au` is good place to do a quick test.
-
-<!-- Temporary while flush6 is being decomissioned:
-```shell
-module load apptainer
-export SINGULARITY_BINDPATH=/apps:/apps,/datasets:/datasets,/scratch1:/scratch1,/scratch2:/scratch2,/flush5:/flush5
-``` -->
-
+## To build and run the docker image:
 
 ```shell
-module load apptainer
-export ROENTGEN_CUDA_DEVICE=0  # Use 'nvidia-smi' to find a free device.
-IMAGE_PATH=/datasets/work/hb-digitaltwin/work/images/roentgen_server.sif
-PORT=8005
-APPTAINERENV_CUDA_VISIBLE_DEVICES=$ROENTGEN_CUDA_DEVICE apptainer run --pwd / --nv $IMAGE_PATH $PORT
+sh run.sh
 ```
 
-or 
+## Docker image I/O:
+ - Input: a single DICOM or PNG/JPEG image.
+ - Output: JSON output with **findings** and **impression** section fields.
+
+## Example requests using `curl` for a DICOM image:
 
 ```shell
-ROENTGEN_CUDA_DEVICE=0
-PORT=8005
-server.sh $ROENTGEN_CUDA_DEVICE $PORT
+curl --location '127.0.0.1:80/dicom_to_report' --form 'input_file=@"./e084de3b-be89b11e-20fe3f9f-9c8d8dfe-4cfd202c.dcm"'
 ```
 
-## Request to the server:
-
-See `request.ipynb` for an example of a request to the server (run the Apptainer image first).
-
-In python:
-
-```python
-url = 'http://127.0.0.1:8005/image'
-
-x = {'prompt': 'left-sided pacemaker device is noted with leads terminating in the right atrium and right ventricle'}
-
-received = requests.post(url, json=json.dumps(x))
-```
-
-Read the received bytes as a PILLOW image:
-
-In python:
-
-```python
-Image.open(io.BytesIO(received.content))
-```
-
-## Building the Apptainer image:
-
-`petrichor-login` is good for this as it is fast and has internet connection.
+## Example requests using `curl` for a PNG image:
 
 ```shell
-export APPTAINER_CACHEDIR=/scratch2/nic261/apptainer_cache  # Avoid exceeding the home directory quota.
-WORK_DIR=/datasets/work/hb-digitaltwin/work/roentgen_api 
-IMAGES_DIR=/datasets/work/hb-digitaltwin/work/images 
-module load apptainer
-cd $WORK_DIR
-APPTAINER_BINDPATH="" SINGULARITY_BINDPATH="" apptainer build $IMAGES_DIR/roentgen_server.sif server.def
+curl --location '127.0.0.1:80/image_to_report' --form 'input_file=@"./CXR1_1_IM-0001-3001.png"'
 ```
+
+## Other information about the Docker image:
+ - On an NVIDIA RTX 3090, uses 2GB of VRAM.
+ - Uses 3.3GB of RAM.
+ - The model that is being used: https://huggingface.co/aehrc/cxrmate-single-tf. 
+ - The paper (under review) that the model is from: https://arxiv.org/pdf/2307.09758.pdf.
+ - Note that this is the simplest model from the paper, there are several improvements (let me know if you want to try to handle one of these cases):
+    - Conditioning all the X-rays of a patient's study: https://huggingface.co/aehrc/cxrmate-multi-tf,
+    - Additionally conditioning on the report from the patient's previous study: https://huggingface.co/aehrc/cxrmate-tf.
+    - Additionally training with reinforcement learning: https://huggingface.co/aehrc/cxrmate.

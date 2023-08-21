@@ -1,0 +1,1 @@
+docker build -t  uq_fhir_cxrmate_api .  --progress string

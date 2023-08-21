@@ -9,8 +9,6 @@ import transformers
 import uvicorn
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import JSONResponse
-from monai import transforms as monai_transforms
-from monai.data import ITKReader
 from PIL import Image
 from pydicom import dcmread
 from torchvision import transforms
@@ -25,7 +23,7 @@ except AttributeError:
 else:
     ssl._create_default_https_context = _create_unverified_https_context
 
-app = FastAPI()
+api = FastAPI()
 
 if torch.backends.mps.is_available():
     device = torch.device('mps')
@@ -73,7 +71,6 @@ dicom_transforms = transforms.Compose(
     ]
 )
 
-dicom_reader = ITKReader()
 
 def preprocess_dicom(stream):
 
@@ -99,7 +96,7 @@ def preprocess_dicom(stream):
 
     return image
 
-@app.post('/dicom_to_report')
+@api.post('/dicom_to_report')
 async def image_to_report(request: Request, input_file: UploadFile = File(...)):
 
     if request.method == 'POST':
@@ -143,7 +140,7 @@ async def image_to_report(request: Request, input_file: UploadFile = File(...)):
                                  'errors': 'error'},
                                 status_code=400)
 
-@app.post('/image_to_report')
+@api.post('/image_to_report')
 async def image_to_report(request: Request,
                        input_file: UploadFile = File(...)):
 
@@ -192,4 +189,4 @@ async def image_to_report(request: Request,
                                 status_code=400)
         
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(api, host="0.0.0.0", port=8000)
