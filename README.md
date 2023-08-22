@@ -29,3 +29,7 @@ curl --location '127.0.0.1:80/image_to_report' --form 'input_file=@"./CXR1_1_IM-
     - Conditioning all the X-rays of a patient's study: https://huggingface.co/aehrc/cxrmate-multi-tf,
     - Additionally conditioning on the report from the patient's previous study: https://huggingface.co/aehrc/cxrmate-tf.
     - Additionally training with reinforcement learning: https://huggingface.co/aehrc/cxrmate.
+
+## To run outside of Docker (this will allow you to use Apple silicon GPUs):
+ 1. Install the packages from `requirements.txt` in a virtual environment, e.g., https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/.
+ 2. Run: ```uvicorn api.api:api --host 0.0.0.0 --port 80 --log-level trace```
