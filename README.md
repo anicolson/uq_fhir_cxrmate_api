@@ -5,7 +5,7 @@ sh run.sh
 ```
 
 ## Docker image I/O:
- - Input: a single DICOM or PNG/JPEG image.
+ - Input: a single DICOM or PNG image.
  - Output: JSON output with **findings** and **impression** section fields.
 
 ## Example requests using `curl` for a DICOM image:
